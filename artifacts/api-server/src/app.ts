@@ -40,7 +40,7 @@ app.use("/api", router);
 if (process.env.NODE_ENV === "production") {
   const clientDistPath = path.join(__dirname, "../../wheatrisk/dist");
   app.use(express.static(clientDistPath));
-  app.get("/(.*)", (req, res) => {
+  app.get("/:path*", (req, res) => {
     res.sendFile(path.join(clientDistPath, "index.html"));
   });
 }
