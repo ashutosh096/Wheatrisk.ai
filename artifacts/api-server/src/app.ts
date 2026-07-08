@@ -38,7 +38,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api", router);
 
 if (process.env.NODE_ENV === "production") {
-  const clientDistPath = path.join(__dirname, "../../wheatrisk/dist");
+  const clientDistPath = path.join(__dirname, "../../wheatrisk/dist/public");
   app.use(express.static(clientDistPath));
   // Fallback middleware to serve index.html for React routing, bypassing path-to-regexp completely
   app.use((req, res) => {
