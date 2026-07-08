@@ -1,0 +1,27 @@
+kind = "web"
+previewPath = "/"
+title = "WheatRisk.ai Dashboard"
+version = "1.0.0"
+id = "artifacts/wheatrisk"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 23836
+
+[services.development]
+run = "pnpm --filter @workspace/wheatrisk run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/wheatrisk", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/wheatrisk/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "23836"
+BASE_PATH = "/"
