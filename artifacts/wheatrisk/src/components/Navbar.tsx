@@ -3,14 +3,13 @@ import { Activity, Wifi, Split } from "lucide-react";
 interface NavbarProps {
   isCompareMode: boolean;
   onToggleCompareMode: () => void;
+  seasonLabel: string;
+  weekNum: number;
+  monthStr: string;
+  year: number;
 }
 
-export function Navbar({ isCompareMode, onToggleCompareMode }: NavbarProps) {
-  const now = new Date();
-  const weekNum = Math.ceil(now.getDate() / 7);
-  const monthStr = now.toLocaleString("en-IN", { month: "short" });
-  const year = now.getFullYear();
-
+export function Navbar({ isCompareMode, onToggleCompareMode, seasonLabel, weekNum, monthStr, year }: NavbarProps) {
   return (
     <div className="w-full h-11 shrink-0 z-50 flex items-center justify-between px-4"
       style={{ background: "linear-gradient(90deg, #0B1724 0%, #0D2137 60%, #0B1D30 100%)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
@@ -35,7 +34,7 @@ export function Navbar({ isCompareMode, onToggleCompareMode }: NavbarProps) {
       {/* ── Right side ── */}
       <div className="flex items-center gap-4">
         <div className="hidden md:flex items-center gap-1.5 text-slate-400 text-[10px] font-semibold uppercase tracking-widest">
-          <span>Rabi Season</span>
+          <span>{seasonLabel}</span>
           <span className="text-slate-600">·</span>
           <span>Reporting Week&nbsp;{weekNum}&nbsp;·&nbsp;{monthStr}&nbsp;{year}</span>
         </div>
@@ -48,7 +47,7 @@ export function Navbar({ isCompareMode, onToggleCompareMode }: NavbarProps) {
           className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-200 border ${
             isCompareMode
               ? "bg-cyan-500/20 border-cyan-400 text-cyan-300 shadow-sm shadow-cyan-500/10"
-              : "bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white"
+              : "bg-white/5 border-slate-400 text-slate-200 hover:bg-white/10 hover:border-cyan-400 hover:text-cyan-300"
           }`}
         >
           <Split className="w-3.5 h-3.5" />

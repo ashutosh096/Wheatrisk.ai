@@ -139,50 +139,6 @@ export function RightPanel({
           )}
         </PanelCard>
 
-        {/* ── Portfolio Exposure & Concentration Limits ── */}
-        <PanelCard>
-          <div className="flex items-center gap-1.5 mb-2.5">
-            <MapPin className="w-3.5 h-3.5 text-slate-400" />
-            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-              Portfolio Exposure Limits
-            </span>
-          </div>
-          
-          <div className="space-y-3">
-            <div className="flex justify-between items-baseline">
-              <span className="text-[10px] text-slate-500 font-semibold">TOTAL ACTIVE BOOK</span>
-              <strong className="text-sm font-black text-slate-800">₹500 Crore</strong>
-            </div>
-
-            <div className="space-y-1.5">
-              {/* Stacked Bar */}
-              <div className="h-4 w-full rounded-full overflow-hidden flex bg-slate-100">
-                <div className="h-full bg-emerald-500" style={{ width: "35%" }} title="Very Low (₹175 Cr)" />
-                <div className="h-full bg-teal-400" style={{ width: "30%" }} title="Low (₹150 Cr)" />
-                <div className="h-full bg-yellow-400" style={{ width: "20%" }} title="Moderate (₹100 Cr)" />
-                <div className="h-full bg-orange-400" style={{ width: "10%" }} title="High (₹50 Cr)" />
-                <div className="h-full bg-red-500" style={{ width: "5%" }} title="Very High (₹25 Cr)" />
-              </div>
-              
-              <div className="flex justify-between items-center text-[9px] font-medium text-slate-400">
-                <span>Safe Zones: 65%</span>
-                <span className="text-red-500 font-bold">High-Risk Limit: ₹100 Cr (Used: ₹75 Cr)</span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2 text-[10px] pt-1">
-              <div className="bg-slate-50 border border-slate-100 p-1.5 rounded flex justify-between">
-                <span className="text-slate-500 font-medium">Low Risk (VL+L):</span>
-                <strong className="text-slate-700">₹325 Cr</strong>
-              </div>
-              <div className="bg-slate-50 border border-slate-100 p-1.5 rounded flex justify-between">
-                <span className="text-slate-500 font-medium">High Risk (H+VH):</span>
-                <strong className="text-amber-600">₹75 Cr</strong>
-              </div>
-            </div>
-          </div>
-        </PanelCard>
-
         {/* ── Card 3: Detail ── */}
         <PanelCard noPad flex>
           {selectedPincode && selectedDistrict && selectedBlock ? (

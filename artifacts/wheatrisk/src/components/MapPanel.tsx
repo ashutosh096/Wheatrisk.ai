@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useCallback, useEffect } from "react";
-import { Search, X, SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal } from "lucide-react";
 import { MapContainer, TileLayer, GeoJSON, ZoomControl, useMap, Marker, Tooltip } from "react-leaflet";
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -79,15 +79,23 @@ function ZoomToSelection({
         if (feature) {
           const layer = L.geoJSON(feature);
           const bounds = layer.getBounds();
-          if (bounds.isValid()) map.fitBounds(bounds, { padding: [100, 100], maxZoom: 9 });
+          if (bounds.isValid()) map.fitBounds(bounds, { padding: [100, 100], maxZoom: 9, animate: true, duration: 0.8 });
         }
+      } catch { /* noop */ }
+    } else if (selectedDistrict && !selectedBlock) {
+      // When a district is selected from the filter, fit whole UP so
+      // any corner district (e.g. Sonbhadra) is always visible on screen
+      try {
+        const upLayer = L.geoJSON(geojsonData);
+        const upBounds = upLayer.getBounds();
+        if (upBounds.isValid()) map.fitBounds(upBounds, { padding: [24, 24], animate: true, duration: 0.8 });
       } catch { /* noop */ }
     } else if (!selectedDistrict) {
       // Zoom back to UP when selection is cleared
       try {
         const layer = L.geoJSON(geojsonData);
         const bounds = layer.getBounds();
-        if (bounds.isValid()) map.fitBounds(bounds, { padding: [24, 24] });
+        if (bounds.isValid()) map.fitBounds(bounds, { padding: [24, 24], animate: true, duration: 0.8 });
       } catch { /* noop */ }
     }
   }, [selectedDistrict, selectedBlock, geojsonData, map]);
@@ -289,7 +297,6 @@ export function MapPanel({
   selectedBlock,
   onSelectBlock,
 }: MapPanelProps) {
-  const [searchQuery, setSearchQuery] = useState("");
   const geoJsonLayerRef = useRef<L.GeoJSON | null>(null);
   const hasSelection = !!selectedDistrict;
 
@@ -322,8 +329,6 @@ export function MapPanel({
     return lookup;
   }, [districtsData]);
 
-  const searchedDistrict = searchQuery.trim().toLowerCase();
-
   const selectedDistrictFeature = useMemo(() => {
     if (!selectedDistrict || !geojsonData) return null;
     return geojsonData.features?.find((f: any) => {
@@ -355,7 +360,6 @@ export function MapPanel({
     const category = getCategoryForDistrict(data, activeLayer);
     const color = getCategoryColor(activeLayer, category);
     const isSelected = selectedDistrict === districtName;
-    const isSearched = searchedDistrict && districtName.toLowerCase().includes(searchedDistrict);
 
     if (hasSelection) {
       if (selectedBlock) {
@@ -402,13 +406,12 @@ export function MapPanel({
 
     return {
       fillColor: color,
-      weight:      isSelected ? 3.5 : isSearched ? 2 : 0.7,
+      weight:      isSelected ? 3.5 : 0.7,
       opacity:     1,
-      color:       isSelected ? "#000000" : isSearched ? "#22d3ee" : "rgba(255,255,255,0.6)",
+      color:       isSelected ? "#000000" : "rgba(255,255,255,0.6)",
       fillOpacity: isSelected ? 0.97 : 0.78,
-      dashArray:   isSearched && !isSelected ? "4,3" : undefined,
     };
-  }, [dataLookup, activeLayer, selectedDistrict, selectedBlock, searchedDistrict, hasSelection]);
+  }, [dataLookup, activeLayer, selectedDistrict, selectedBlock, hasSelection]);
 
   /* ── Per-feature tooltip & click ── */
   const onEachFeature = useCallback((feature: any, layer: any) => {
@@ -472,28 +475,6 @@ export function MapPanel({
   return (
     <div className="relative flex-1 flex flex-col h-full overflow-hidden" style={{ background: "#dde8ef" }}>
 
-      {/* Search overlay */}
-      <div className="absolute top-3 left-3 z-[400]">
-        <div
-          className="flex items-center gap-2 bg-white rounded-lg shadow-lg overflow-hidden h-9"
-          style={{ border: "1px solid #e2e8f0", minWidth: 220 }}
-        >
-          <Search className="w-3.5 h-3.5 text-slate-400 ml-3 shrink-0" />
-          <input
-            type="text"
-            placeholder="Search district…"
-            className="flex-1 text-xs text-slate-700 placeholder:text-slate-400 focus:outline-none pr-2"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          {searchQuery && (
-            <button onClick={() => setSearchQuery("")} className="pr-2.5">
-              <X className="w-3 h-3 text-slate-400 hover:text-slate-600" />
-            </button>
-          )}
-        </div>
-      </div>
-
       {/* Active-layer badge */}
       <div className="absolute top-3 right-3 z-[400]">
         <div
@@ -522,12 +503,13 @@ export function MapPanel({
         center={[22.5, 80.0]}
         zoom={4}
         zoomControl={false}
+        attributionControl={false}
         className="w-full h-full"
         style={{ background: "#dde8ef" }}
       >
         <ZoomControl position="bottomright" />
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+          attribution=""
           url="https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png"
           opacity={0.65}
         />

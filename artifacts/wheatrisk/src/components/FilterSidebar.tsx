@@ -8,8 +8,12 @@ import { getPincodesForBlock } from "../lib/pincodeData";
    TYPES
 ───────────────────────────────────────────────────────────────────────────── */
 interface FilterSidebarProps {
-  season: string;
-  setSeason: (val: string) => void;
+  year: string;
+  setYear: (v: string) => void;
+  month: number;
+  setMonth: (v: number) => void;
+  week: number;
+  setWeek: (v: number) => void;
   growthStage: string;
   setGrowthStage: (val: string) => void;
   activeLayer: LayerType;
@@ -35,10 +39,10 @@ const YEARS  = Array.from({ length: 11 }, (_, i) => String(2016 + i));
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const MONTH_FULL = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
-const LAYER_CONFIG: { id: LayerType; label: string; color: string }[] = [
-  { id: "wheat_risk",     label: "Wheat Risk Index",         color: "#14b8a6" },
-  { id: "drought_stress", label: "Drought Stress",           color: "#f97316" },
-  { id: "heat_stress",    label: "Heat Stress at Flowering", color: "#fca5a5" },
+const LAYER_CONFIG: { id: LayerType; label: string; color: string; tooltip: string }[] = [
+  { id: "wheat_risk",     label: "Wheat Risk Index",         color: "#14b8a6", tooltip: "Composite risk score (CHI) combining rainfall, temperature & crop stress across all growth stages" },
+  { id: "drought_stress", label: "Drought Stress",           color: "#f97316", tooltip: "Rainfall deviation (%) from 1990–2020 baseline — negative % means drier than normal" },
+  { id: "heat_stress",    label: "Heat Stress at Flowering", color: "#fca5a5", tooltip: "Temperature anomaly (°C) during the critical flowering window — excess heat reduces grain yield" },
 ];
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -60,6 +64,9 @@ function weekRange(year: number, monthIdx: number, weekNum: number): string {
    MAIN COMPONENT
 ───────────────────────────────────────────────────────────────────────────── */
 export function FilterSidebar({
+  year, setYear,
+  month, setMonth,
+  week, setWeek,
   activeLayer, setActiveLayer,
   selectedDistrict, onSelectDistrict,
   selectedBlock, onSelectBlock,
@@ -70,10 +77,6 @@ export function FilterSidebar({
   selectedBlockB = null,
   onSelectBlockB = () => {},
 }: FilterSidebarProps) {
-  const today = new Date();
-  const [year,  setYear]  = useState(String(today.getFullYear()));
-  const [month, setMonth] = useState(today.getMonth());
-  const [week,  setWeek]  = useState(1);
 
   const handleSelectDistrict = useCallback((d: string | null) => {
     onSelectDistrict(d);
@@ -363,30 +366,38 @@ export function FilterSidebar({
             {LAYER_CONFIG.map((layer) => {
               const active = activeLayer === layer.id;
               return (
-                <button
+              <button
                   key={layer.id}
                   onClick={() => setActiveLayer(layer.id)}
-                  className="w-full text-left flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-all duration-150"
+                  title={layer.tooltip}
+                  className="w-full text-left flex flex-col gap-0.5 px-3 py-2.5 rounded-lg transition-all duration-150"
                   style={{
                     background: active ? "#f0fdfa" : "transparent",
                     border: active ? `1.5px solid #5eead4` : "1.5px solid transparent",
                   }}
                 >
-                  <div
-                    className="w-3 h-3 rounded-full shrink-0"
-                    style={{ background: layer.color }}
-                  />
-                  <span
-                    className="flex-1 text-xs font-semibold leading-tight"
-                    style={{ color: active ? "#0d6455" : "#475569" }}
-                  >
-                    {layer.label}
-                  </span>
-                  {active && (
+                  <div className="flex items-center gap-2.5">
                     <div
-                      className="w-2 h-2 rounded-full shrink-0"
+                      className="w-3 h-3 rounded-full shrink-0"
                       style={{ background: layer.color }}
                     />
+                    <span
+                      className="flex-1 text-xs font-semibold leading-tight"
+                      style={{ color: active ? "#0d6455" : "#475569" }}
+                    >
+                      {layer.label}
+                    </span>
+                    {active && (
+                      <div
+                        className="w-2 h-2 rounded-full shrink-0"
+                        style={{ background: layer.color }}
+                      />
+                    )}
+                  </div>
+                  {active && (
+                    <p className="text-[9px] text-teal-600 leading-tight pl-5 font-medium">
+                      {layer.tooltip}
+                    </p>
                   )}
                 </button>
               );
@@ -525,13 +536,17 @@ function SearchableSelect({
   return (
     <div ref={ref} className="relative">
       <div
-        className="h-9 rounded-lg px-3 flex items-center justify-between cursor-pointer"
-        style={{ background: "#fff", border: `1px solid ${open ? "#14b8a6" : "#d1d5db"}` }}
+        className="h-9 rounded-lg px-3 flex items-center justify-between cursor-pointer transition-all"
+        style={{
+          background: "#fff",
+          border: `1px solid ${open ? "#14b8a6" : value ? "#5eead4" : "#d1d5db"}`,
+          boxShadow: value ? "inset 3px 0 0 #14b8a6" : undefined,
+        }}
         onClick={handleOpen}
       >
         {value ? (
           <>
-            <span className="text-sm font-medium text-slate-700 truncate">{value}</span>
+            <span className="text-sm font-semibold text-teal-700 truncate">{value}</span>
             <button
               onClick={(e) => { e.stopPropagation(); onChange(null); }}
               className="ml-2 text-slate-400 hover:text-slate-600 transition-colors shrink-0"
@@ -569,10 +584,15 @@ function SearchableSelect({
                 <button
                   key={opt}
                   onClick={() => { onChange(opt); setOpen(false); setQuery(""); }}
-                  className="w-full text-left px-3 py-2 text-xs font-medium hover:bg-teal-50 transition-colors"
-                  style={{ color: opt === value ? "#0d9488" : "#374151", fontWeight: opt === value ? 700 : 500 }}
+                  className="w-full text-left px-3 py-2 text-xs font-medium hover:bg-teal-50 transition-colors flex items-center justify-between"
+                  style={{
+                    background: opt === value ? "#f0fdfa" : undefined,
+                    color: opt === value ? "#0d9488" : "#374151",
+                    fontWeight: opt === value ? 700 : 500,
+                  }}
                 >
-                  {opt}
+                  <span>{opt}</span>
+                  {opt === value && <Check className="w-3 h-3 text-teal-500 shrink-0" />}
                 </button>
               ))
             )}
