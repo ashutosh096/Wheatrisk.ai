@@ -36,7 +36,7 @@ export function BottomLegend({
             </div>
           ))}
         </div>
-      </div>
+      </div>      
 
       {/* Right: source + reset */}
       <div className="flex items-center gap-3 shrink-0">
